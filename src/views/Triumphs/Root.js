@@ -11,6 +11,7 @@ import ObservedImage from '../../components/ObservedImage';
 import { enumerateRecordState } from '../../utils/destinyEnums';
 import RecordsAlmost from '../../components/RecordsAlmost';
 import RecordsTracked from '../../components/RecordsTracked';
+import NotificationInline from '../../components/NotificationInline';
 
 class Root extends React.Component {
   render() {
@@ -25,7 +26,7 @@ class Root extends React.Component {
     const sealBars = {
       2588182977: {
         text: manifest.DestinyRecordDefinition[2757681677].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-00001367.PNG',
+        image: '037E-00001367.png',
         nodeHash: 2588182977,
         recordHash: 2757681677,
         total: profileRecords[2757681677].objectives[0].completionValue,
@@ -33,7 +34,7 @@ class Root extends React.Component {
       },
       3481101973: {
         text: manifest.DestinyRecordDefinition[3798931976].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-00001343.PNG',
+        image: '037E-00001343.png',
         nodeHash: 3481101973,
         recordHash: 3798931976,
         total: profileRecords[3798931976].objectives[0].completionValue,
@@ -41,7 +42,7 @@ class Root extends React.Component {
       },
       147928983: {
         text: manifest.DestinyRecordDefinition[3369119720].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-0000134A.PNG',
+        image: '037E-0000134A.png',
         nodeHash: 147928983,
         recordHash: 3369119720,
         total: profileRecords[3369119720].objectives[0].completionValue,
@@ -49,7 +50,7 @@ class Root extends React.Component {
       },
       2693736750: {
         text: manifest.DestinyRecordDefinition[1754983323].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-0000133C.PNG',
+        image: '037E-0000133C.png',
         nodeHash: 2693736750,
         recordHash: 1754983323,
         total: profileRecords[1754983323].objectives[0].completionValue,
@@ -57,7 +58,7 @@ class Root extends React.Component {
       },
       2516503814: {
         text: manifest.DestinyRecordDefinition[1693645129].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-00001351.PNG',
+        image: '037E-00001351.png',
         nodeHash: 2516503814,
         recordHash: 1693645129,
         total: profileRecords[1693645129].objectives[0].completionValue,
@@ -65,7 +66,7 @@ class Root extends React.Component {
       },
       1162218545: {
         text: manifest.DestinyRecordDefinition[2182090828].titleInfo.titlesByGenderHash[genderHash],
-        image: '037E-00001358.PNG',
+        image: '037E-00001358.png',
         nodeHash: 1162218545,
         recordHash: 2182090828,
         total: profileRecords[2182090828].objectives[0].completionValue,
@@ -73,11 +74,19 @@ class Root extends React.Component {
       },
       2039028930: {
         text: manifest.DestinyRecordDefinition[2053985130].titleInfo.titlesByGenderHash[genderHash],
-        image: '0560-000000EB.PNG',
+        image: '0560-000000EB.png',
         nodeHash: 2039028930,
         recordHash: 2053985130,
         total: profileRecords[2053985130].objectives[0].completionValue,
         completed: profileRecords[2053985130].objectives[0].progress
+      },
+      991908404: {
+        text: manifest.DestinyRecordDefinition[1313291220].titleInfo.titlesByGenderHash[genderHash],
+        image: '0560-0000107E.png',
+        nodeHash: 991908404,
+        recordHash: 1313291220,
+        total: profileRecords[1313291220].objectives[0].completionValue,
+        completed: profileRecords[1313291220].objectives[0].progress
       }
     };
 
@@ -102,7 +111,10 @@ class Root extends React.Component {
           }
           nodeChildNodeChildNode.children.records.forEach(record => {
             let scope = profileRecords[record.recordHash] ? profileRecords[record.recordHash] : characterRecords[characterId].records[record.recordHash];
+            let def = manifest.DestinyRecordDefinition[record.recordHash] || false;
             if (scope) {
+              scope.hash = record.recordHash;
+              scope.scoreValue = def && def.completionInfo ? def.completionInfo.ScoreValue : 0;
               states.push(scope);
               recordsStates.push(scope);
             } else {
@@ -184,6 +196,12 @@ class Root extends React.Component {
       );
     });
 
+    let unredeemedTriumphCount = recordsStates.filter(record => !enumerateRecordState(record.state).recordRedeemed && !enumerateRecordState(record.state).objectiveNotCompleted).length;
+
+    let potentialScoreGain = recordsStates.filter(record => !enumerateRecordState(record.state).recordRedeemed && !enumerateRecordState(record.state).objectiveNotCompleted).reduce((currentValue, unredeemedTriumph) => {
+      return unredeemedTriumph.scoreValue + currentValue;
+    }, 0);
+
     return (
       <>
         <div className='module'>
@@ -191,6 +209,7 @@ class Root extends React.Component {
             <div>{t('Total score')}</div>
           </div>
           <div className='total-score'>{this.props.member.data.profile.profileRecords.data.score}</div>
+          {unredeemedTriumphCount > 0 ? <NotificationInline name='Unredeemed triumphs' description={potentialScoreGain > 0 ? `You have ${unredeemedTriumphCount} triumph ${unredeemedTriumphCount === 1 ? `record` : `records`} worth ${potentialScoreGain} score to redeem` : `You have ${unredeemedTriumphCount} triumph ${unredeemedTriumphCount === 1 ? `record` : `records`} to redeem`} /> : null}
           <div className='sub-header sub'>
             <div>{t('Triumphs')}</div>
             <div>

@@ -28,6 +28,8 @@ i18n
       loadPath: '/static/locales/{{lng}}/{{ns}}.json'
     },
 
+    // allow keys to be phrases having `:`, `.`
+    nsSeparator: false,
     keySeparator: false,
 
     interpolation: {

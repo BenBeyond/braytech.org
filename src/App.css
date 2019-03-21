@@ -391,6 +391,7 @@ button.square.active {
 
 .page-header .description {
   margin: 10px 0 0;
+  font-size: 18px;
 }
 
 @media screen and (max-width: 600px) {
@@ -507,6 +508,15 @@ html.backdropfilter .sticky-nav{
 
 .sticky-nav ul li {
   margin: 0 0 0 2rem;
+  font-size: inherit;
+  display: inherit;
+  color: inherit;
+  transition: inherit;
+  height: inherit;
+}
+
+.sticky-nav.inline {
+  padding: 1rem 1rem 1rem;
 }
 
 @media screen and (max-width: 600px) {

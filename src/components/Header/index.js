@@ -27,7 +27,7 @@ class Header extends React.Component {
     this.updateFlash = false;
     this.navEl = React.createRef();
   }
-  
+
   componentDidUpdate(prevProps) {
     if (prevProps.member.data.updated !== this.props.member.data.updated && this.state.lastUpdate !== this.props.member.data.updated && !this.state.updateFlash) {
       this.setState({ lastUpdate: this.props.member.data.updated, updateFlash: true });
@@ -38,12 +38,13 @@ class Header extends React.Component {
       }, 1000);
     }
     if (this.state.navOpen) {
-      this.navEl.current.addEventListener('touchmove', this.nav_touchMove);
+      this.navEl.current.addEventListener('touchmove', this.nav_touchMove, true);
     }
   }
 
   nav_touchMove = e => {
-    e.preventDefault();
+    //e.preventDefault();
+    //e.stopPropagation()
   };
 
   toggleNav = () => {
@@ -58,6 +59,10 @@ class Header extends React.Component {
     if (this.state.navOpen) {
       this.setState({ navOpen: false });
     }
+  };
+
+  openNav = () => {
+    this.setState({ navOpen: true });
   };
 
   navOverlayLink = state => {
@@ -83,74 +88,113 @@ class Header extends React.Component {
     let views = [
       {
         name: t('Clan'),
-        desc: t('Activity and statistics'),
+        desc: t('Check in on your clan'),
         slug: '/clan',
         exact: false,
-        profile: true
-      },
-      {
-        name: t('Legend'),
-        desc: t("Bird's eye view of your overall progress"),
-        slug: '/legend',
-        exact: true,
-        profile: true
+        profile: true,
+        primary: true
       },
       {
         name: t('Collections'),
         desc: t('Items your Guardian has acquired'),
         slug: '/collections',
         exact: false,
-        profile: true
+        profile: true,
+        primary: true
       },
       {
         name: t('Triumphs'),
-        desc: t("Records of your Guardian's achievements"),
+        desc: t("Records your Guardian has achieved"),
         slug: '/triumphs',
         exact: false,
-        profile: true
-      },
-      {
-        name: t('Checklists'),
-        desc: t('Made a list, check it twice'),
-        slug: '/checklists',
-        exact: true,
-        profile: true
+        profile: true,
+        primary: true
       },
       {
         name: t('This Week'),
         desc: t('Prestigious records and valued items up for grabs this week'),
         slug: '/this-week',
         exact: true,
+        profile: true,
+        primary: true
+      },
+      {
+        name: t('Checklists'),
+        desc: t('Complete lists of collecibles, scannables, etc.'),
+        slug: '/checklists',
+        exact: true,
+        profile: true,
+        primary: true
+      },
+      {
+        name: t('Sit Rep'),
+        desc: t('Be more aware of your surroundings, Guardian'),
+        slug: '/sit-rep',
+        exact: true,
+        profile: true,
+        primary: true
+      },
+      {
+        name: t('Legend'),
+        desc: t("A high-level and more graphical overview of your achievements"),
+        slug: '/legend',
+        exact: true,
         profile: true
       },
-      // {
-      //   name: t('Activity'),
-      //   desc: t("Bird's eye view of your overall progress"),
-      //   slug: '/activity',
-      //   exact: true,
-      //   profile: true
-      // },
       {
-        name: t('Resources'),
-        desc: t('Assorted Destiny-related resources'),
-        slug: '/resources',
-        exact: false
+        name: t('More'),
+        desc: t('Prestigious records and valued items up for grabs this week'),
+        slug: '/',
+        exact: true,
+        profile: false,
+        primary: true,
+        hidden: true
       },
       {
         name: <span className='destiny-settings' />,
-        desc: 'Theme, language, collectible display state',
+        desc: 'Theme, collectibles, language',
         slug: '/settings',
-        exact: true
+        exact: true,
+        primary: true
+      },
+      // {
+      //   name: t('Leaderboards'),
+      //   desc: t('???'),
+      //   slug: '/leaderboards',
+      //   exact: true,
+      //   profile: false
+      // },
+      {
+        name: t('Resources'),
+        desc: t("justrealmilk's curated list of tools and artists"),
+        slug: '/resources',
+        exact: false,
+        profile: false
+      },
+      {
+        name: t('FAQ'),
+        desc: t('Answers to common queries in a mostly well-written and organised format'),
+        slug: '/faq',
+        exact: false,
+        profile: false
+      },
+      {
+        name: t('Credits'),
+        desc: t('The Architects and Guardians that make Braytech possible'),
+        slug: '/credits',
+        exact: false,
+        profile: false
       }
     ];
 
     let viewsInline = false;
-    if (viewport.width >= 1258) {
+    if (viewport.width >= 1260) {
       viewsInline = true;
     }
 
-    let profileRoute = route.location.pathname.match(/\/(?:[1|2|4])\/(?:[0-9]+)\/(?:[0-9]+)\/(\w+)/);
-    let profileView = profileRoute ? profileRoute[1] : false;
+    let profileRoute = route.location.pathname.match(/\/(?:[1|2|4])\/(?:[0-9]+)\/(?:[0-9]+)/);
+    let profileRouteView = route.location.pathname.match(/\/(?:[1|2|4])\/(?:[0-9]+)\/(?:[0-9]+)\/(\w+)/);
+    let profileView = profileRouteView ? profileRouteView[1] : false;
 
     let profileEl = null;
 
@@ -162,7 +206,7 @@ class Header extends React.Component {
       }
     };
 
-    if (profileView && member.data) {
+    if (profileRoute && member.data) {
       const characterId = member.characterId;
       const profile = member.data.profile.profile.data;
       const characters = member.data.profile.characters.data;
@@ -224,13 +268,21 @@ class Header extends React.Component {
             {viewsInline ? (
               <div className='views'>
                 <ul>
-                  {views.map(view => {
+                  {views.filter(v => v.primary).map(view => {
                     if (view.profile) {
                       return (
                         <li key={view.slug}>
                           <ProfileNavLink to={view.slug} isActive={isActive} exact={view.exact}>
                             {view.name}
                           </ProfileNavLink>
+                        </li>
+                      );
+                    } else if (view.hidden) {
+                      return (
+                        <li key='more'>
+                          <Link to={view.slug} onClick={e => { e.preventDefault(); this.openNav(); }}>
+                            {view.name}
+                          </Link>
                         </li>
                       );
                     } else {
@@ -260,18 +312,26 @@ class Header extends React.Component {
               Braytech
             </Link>
           </div>
-          {!viewsInline ? this.navOverlayLink(this.state.navOpen) : null}
-          {!profileEl && viewsInline ? (
+          {!viewsInline || this.state.navOpen ? this.navOverlayLink(this.state.navOpen) : null}
+          {!profileEl && viewsInline && !this.state.navOpen ? (
             <div className='ui'>
               <div className='views'>
                 <ul>
-                  {views.map(view => {
-                    if (view.profile) {
+                  {views.filter(v => v.primary).map(view => {
+                    if (view.profile && !view.secondary) {
                       return (
                         <li key={view.slug}>
                           <ProfileNavLink to={view.slug} isActive={isActive} exact={view.exact}>
                             {view.name}
                           </ProfileNavLink>
+                        </li>
+                      );
+                    } else if (view.hidden) {
+                      return (
+                        <li key='more'>
+                          <Link to={view.slug} onClick={e => { e.preventDefault(); this.openNav(); }}>
+                            {view.name}
+                          </Link>
                         </li>
                       );
                     } else {
@@ -288,34 +348,63 @@ class Header extends React.Component {
               </div>
             </div>
           ) : null}
-          {this.state.navOpen ? (
-            <div className='nav' ref={this.navEl}>
-              <ul>
-                {views.map(view => {
-                  if (view.profile) {
-                    return (
-                      <li key={view.slug}>
-                        <div className='name'>{view.name}</div>
-                        <div className='description'>{view.desc}</div>
-                        <ProfileNavLink to={view.slug} isActive={isActive} exact={view.exact} onClick={this.closeNav} />
-                      </li>
-                    );
-                  } else {
-                    return (
-                      <li key={view.slug}>
-                        <div className='name'>{view.name}</div>
-                        <div className='description'>{view.desc}</div>
-                        <NavLink to={view.slug} exact={view.exact} onClick={this.closeNav} />
-                      </li>
-                    );
-                  }
-                })}
-              </ul>
-              <Footer linkOnClick={this.closeNav} />
-            </div>
-          ) : null}
         </div>
         {profileEl}
+        {this.state.navOpen ? (
+          <div className='nav' ref={this.navEl}>
+            <div className='wrap'>
+              <div className='types'>
+                <div className='type progression'>
+                  <ul>
+                    {views.filter(v => v.primary && !v.hidden).map(view => {
+                      if (view.profile) {
+                        return (
+                          <li key={view.slug}>
+                            <div className='name'>{view.name}</div>
+                            <div className='description'>{view.desc}</div>
+                            <ProfileNavLink to={view.slug} isActive={isActive} exact={view.exact} onClick={this.closeNav} />
+                          </li>
+                        );
+                      } else {
+                        return (
+                          <li key={view.slug}>
+                            <div className='name'>{view.name}</div>
+                            <div className='description'>{view.desc}</div>
+                            <NavLink to={view.slug} exact={view.exact} onClick={this.closeNav} />
+                          </li>
+                        );
+                      }
+                    })}
+                  </ul>
+                </div>
+                <div className='type ancillary'>
+                  <ul>
+                    {views.filter(v => !v.primary).map(view => {
+                      if (view.profile) {
+                        return (
+                          <li key={view.slug}>
+                            <div className='name'>{view.name}</div>
+                            <div className='description'>{view.desc}</div>
+                            <ProfileNavLink to={view.slug} isActive={isActive} exact={view.exact} onClick={this.closeNav} />
+                          </li>
+                        );
+                      } else {
+                        return (
+                          <li key={view.slug}>
+                            <div className='name'>{view.name}</div>
+                            <div className='description'>{view.desc}</div>
+                            <NavLink to={view.slug} exact={view.exact} onClick={this.closeNav} />
+                          </li>
+                        );
+                      }
+                    })}
+                  </ul>
+                </div>
+              </div>
+              <Footer minimal linkOnClick={this.closeNav} />
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }

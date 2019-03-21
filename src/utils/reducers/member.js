@@ -1,5 +1,6 @@
 import store from '../reduxStore';
 import getMember from '../getMember';
+import * as voluspa from '../voluspa';
 
 const defaultState = {
   membershipType: false,
@@ -18,7 +19,7 @@ function loadMemberAndReset(membershipType, membershipId, characterId) {
   return {
     membershipId,
     membershipType,
-    characterId: null,
+    characterId: characterId || null,
     data: false,
     prevData: false,
     error: false,
@@ -33,11 +34,13 @@ async function loadMember(membershipType, membershipId, characterId) {
     const data = await getMember(membershipType, membershipId);
 
     if (!data.profile.characterProgressions.data) {
-      store.dispatch({ type: 'MEMBER_LOAD_ERROR', payload: { membershipId, membershipType, error: new Error('private') } });
+      store.dispatch({ type: 'MEMBER_LOAD_ERROR', payload: { membershipId, membershipType, error: { message: 'private' } } });
       return;
     }
 
     store.dispatch({ type: 'MEMBER_LOADED', payload: { membershipId, membershipType, characterId, data } });
+
+    voluspa.store({ membershipId, membershipType});
   } catch (error) {
     store.dispatch({ type: 'MEMBER_LOAD_ERROR', payload: { membershipId, membershipType, error } });
     return;

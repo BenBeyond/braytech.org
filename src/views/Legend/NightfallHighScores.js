@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withNamespaces } from 'react-i18next';
@@ -16,7 +17,6 @@ class NightfallHighScores extends React.Component {
     super(props);
 
     this.state = {};
-
   }
 
   render() {
@@ -116,14 +116,25 @@ class NightfallHighScores extends React.Component {
           }
         }
 
+        let clear = false;
+        let entries = pgcr.entries.filter(entry => characterIds.includes(entry.characterId));
+        entries.forEach(entry => {
+          if (entry.values.completed.basic.value === 1 && entry.values.completionReason.basic.value === 0) {
+            clear = true;
+          }
+        });
+
         let sumScore = 0;
         let highScore = nightfall.highScore || 0;
-        pgcr.entries.forEach(entry => {
-          sumScore = sumScore + entry.score.basic.value;
-        });
-        if (sumScore > highScore) {
-          nightfall.highScore = sumScore;
-          nightfall.highScoreInstanceId = pgcr.activityDetails.instanceId;
+
+        if (clear) {
+          pgcr.entries.forEach(entry => {
+            sumScore = sumScore + entry.score.basic.value;
+          });
+          if (sumScore > highScore) {
+            nightfall.highScore = sumScore;
+            nightfall.highScoreInstanceId = pgcr.activityDetails.instanceId;
+          }
         }
       });
     }
@@ -195,6 +206,7 @@ class NightfallHighScores extends React.Component {
                           <ObservedImage className={cx('image', 'emblem')} src={`https://www.bungie.net${entry.player.destinyUserInfo.iconPath}`} />
                         </div>
                         <div className='displayName'>{entry.player.destinyUserInfo.displayName}</div>
+                        <Link to={`/${entry.player.destinyUserInfo.membershipType}/${entry.player.destinyUserInfo.membershipId}/${entry.characterId}/`} />
                       </li>
                     );
                   })}
@@ -206,7 +218,7 @@ class NightfallHighScores extends React.Component {
         <div className='chart'>
           <ul className='list'>
             <li key='header'>
-              <div className='name'></div>
+              <div className='name' />
               <div className='score'>High score</div>
             </li>
             {list.map(item => item.element)}
