@@ -35,6 +35,7 @@ class Root extends React.Component {
             <div className='icon'>
               <ObservedImage className={cx('image', 'icon')} src={`https://www.bungie.net${collectibleDefinition.displayProperties.icon}`} />
             </div>
+            {collectibleDefinition.itemHash ? <Link to={{ pathname: `/inspect/${collectibleDefinition.itemHash}`, state: { from: '/collections' } }} /> : null}
           </li>
         );
       });
@@ -167,7 +168,7 @@ class Root extends React.Component {
             <div>{t('Recently discovered')}</div>
           </div>
           <div className='recently-discovered'>
-            <ul className='list'>{recentlyDiscovered}</ul>
+            <ul className='list'>{recentlyDiscovered.reverse()}</ul>
           </div>
           <div className='sub-header sub'>
             <div>{t('Badges')}</div>

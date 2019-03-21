@@ -12,6 +12,7 @@ import './components/PresentationNode.css';
 import './utils/i18n';
 import dexie from './utils/dexie';
 import * as bungie from './utils/bungie';
+import * as voluspa from './utils/voluspa';
 import GoogleAnalytics from './components/GoogleAnalytics';
 import store from './utils/reduxStore';
 import manifest from './utils/manifest';
@@ -20,7 +21,8 @@ import * as ls from './utils/localStorage';
 import Header from './components/Header';
 import Tooltip from './components/Tooltip';
 import Footer from './components/Footer';
-import NotificationApp from './components/NotificationApp';
+import NotificationBar from './components/NotificationBar';
+import NotificationOverlay from './components/NotificationOverlay';
 import NotificationProgress from './components/NotificationProgress';
 import RefreshService from './components/RefreshService';
 
@@ -34,7 +36,10 @@ import Read from './views/Read';
 import Settings from './views/Settings';
 import Credits from './views/Credits';
 import Resources from './views/Resources';
+import Leaderboards from './views/Leaderboards';
+import FAQ from './views/FAQ';
 import ClanBannerBuilder from './views/Resources/ClanBannerBuilder';
+import OOB from './views/OOB';
 
 const RedirectRoute = props => <Route {...props} render={({ location }) => <Redirect to={{ pathname: '/character-select', state: { from: location } }} />} />;
 
@@ -71,7 +76,8 @@ class App extends React.Component {
           .first()
       ),
       manifestIndex: timed('getManifestIndex', bungie.manifestIndex()),
-      bungieSettings: timed('getSettings', bungie.settings())
+      bungieSettings: timed('getSettings', bungie.settings()),
+      voluspaStatistics: timed('getStatistics', voluspa.statistics())
     };
 
     const profile = ls.get('setting.profile');
@@ -119,6 +125,10 @@ class App extends React.Component {
     tmpManifest.settings = await this.startupRequests.bungieSettings;
     this.availableLanguages = Object.keys(manifestIndex.jsonWorldContentPaths);
 
+    tmpManifest.statistics = {
+      triumphs: await this.startupRequests.voluspaStatistics
+    };
+
     manifest.set(tmpManifest);
 
     this.setState({ status: { code: 'ready' } });
@@ -157,7 +167,8 @@ class App extends React.Component {
         <Route
           render={route => (
             <div className={cx('wrapper', this.props.theme.selected)}>
-              <NotificationApp updateAvailable={this.props.updateAvailable} />
+              <NotificationBar updateAvailable={this.props.updateAvailable} />
+              {/* <NotificationOverlay /> */}
               <NotificationProgress />
 
               {/* Don't run the refresh service if we're currently selecting
@@ -177,6 +188,8 @@ class App extends React.Component {
                         <Switch>
                           <RedirectRoute path='/clan' />
                           <RedirectRoute path='/legend' exact />
+                          <RedirectRoute path='/sit-rep' exact />
+                          <RedirectRoute path='/competitive' exact />
                           <RedirectRoute path='/checklists' exact />
                           <RedirectRoute path='/collections/' />
                           <RedirectRoute path='/triumphs' />
@@ -186,9 +199,12 @@ class App extends React.Component {
                           <Route path='/inspect/:hash?' exact component={Inspect} />
                           <Route path='/read/:kind?/:hash?' exact component={Read} />
                           <Route path='/settings' exact render={() => <Settings availableLanguages={this.availableLanguages} />} />
+                          <Route path='/faq' exact component={FAQ} />
                           <Route path='/credits' exact component={Credits} />
+                          <Route path='/leaderboards' exact component={Leaderboards} />
                           <Route path='/resources' exact component={Resources} />
                           <Route path='/resources/clan-banner-builder/:decalBackgroundColorId?/:decalColorId?/:decalId?/:gonfalonColorId?/:gonfalonDetailColorId?/:gonfalonDetailId?/:gonfalonId?/' exact component={ClanBannerBuilder} />
+                          <Route path='/oob' component={OOB} />
                           <Route path='/' component={Index} />
                         </Switch>
                       </>
@@ -196,7 +212,7 @@ class App extends React.Component {
                   />
                 </Switch>
               </div>
-              <Footer route={route} />
+              <Footer />
             </div>
           )}
         />

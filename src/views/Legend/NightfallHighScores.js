@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withNamespaces } from 'react-i18next';
@@ -9,17 +10,17 @@ import orderBy from 'lodash/orderBy';
 
 import manifest from '../../utils/manifest';
 import ObservedImage from '../../components/ObservedImage';
+import Spinner from '../../components/Spinner';
 
 class NightfallHighScores extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {};
-
   }
 
   render() {
-    const { t, member, PGCRcache } = this.props;
+    const { t, member, PGCRcache, cacheState, cacheLoading } = this.props;
     const characterIds = member.data.profile.characters.data.map(c => c.characterId);
 
     let nightfalls = [
@@ -81,13 +82,16 @@ class NightfallHighScores extends React.Component {
       }
     ];
 
+    let nfPGCRs = [];
     let sumKills = 0;
     let sumDeaths = 0;
     let sumCleared = 0;
     let sumDuration = 0;
     let sumSuperKills = 0;
     if (PGCRcache[member.membershipId]) {
-      PGCRcache[member.membershipId].filter(pgcr => pgcr.activityDetails.mode === 46).forEach(pgcr => {
+      nfPGCRs = PGCRcache[member.membershipId].filter(pgcr => pgcr.activityDetails.mode === 46);
+
+      nfPGCRs.forEach(pgcr => {
         let nightfall = nightfalls.find(nf => nf.directorActivityHash === pgcr.activityDetails.directorActivityHash);
         if (!nightfall) {
           return;
@@ -112,14 +116,25 @@ class NightfallHighScores extends React.Component {
           }
         }
 
+        let clear = false;
+        let entries = pgcr.entries.filter(entry => characterIds.includes(entry.characterId));
+        entries.forEach(entry => {
+          if (entry.values.completed.basic.value === 1 && entry.values.completionReason.basic.value === 0) {
+            clear = true;
+          }
+        });
+
         let sumScore = 0;
         let highScore = nightfall.highScore || 0;
-        pgcr.entries.forEach(entry => {
-          sumScore = sumScore + entry.score.basic.value;
-        });
-        if (sumScore > highScore) {
-          nightfall.highScore = sumScore;
-          nightfall.highScoreInstanceId = pgcr.activityDetails.instanceId;
+
+        if (clear) {
+          pgcr.entries.forEach(entry => {
+            sumScore = sumScore + entry.score.basic.value;
+          });
+          if (sumScore > highScore) {
+            nightfall.highScore = sumScore;
+            nightfall.highScoreInstanceId = pgcr.activityDetails.instanceId;
+          }
         }
       });
     }
@@ -138,7 +153,7 @@ class NightfallHighScores extends React.Component {
         definition: definition,
         element: (
           <li key={definition.hash} className={cx({ lowScore: (nf.highScore || 0) < 100000 })}>
-            <div className='name'>{definition.displayProperties.name.replace('Nightfall: ', '')}</div>
+            <div className='name'>{definition.selectionScreenDisplayProperties.name}</div>
             <div className='score'>{!nf.highScore ? '—' : nf.highScore.toLocaleString()}</div>
           </li>
         )
@@ -173,7 +188,7 @@ class NightfallHighScores extends React.Component {
               </div>
               <div className='properties'>
                 <div className='desc'>Top score</div>
-                <div className='name'>{topNightfall.definition.displayProperties.name.replace('Nightfall: ', '')}</div>
+                <div className='name'>{topNightfall.definition.selectionScreenDisplayProperties.name}</div>
                 <div className='score'>{topNightfall.highScore.toLocaleString()}</div>
               </div>
               <div className='fireteam'>
@@ -191,6 +206,7 @@ class NightfallHighScores extends React.Component {
                           <ObservedImage className={cx('image', 'emblem')} src={`https://www.bungie.net${entry.player.destinyUserInfo.iconPath}`} />
                         </div>
                         <div className='displayName'>{entry.player.destinyUserInfo.displayName}</div>
+                        <Link to={`/${entry.player.destinyUserInfo.membershipType}/${entry.player.destinyUserInfo.membershipId}/${entry.characterId}/`} />
                       </li>
                     );
                   })}
@@ -202,53 +218,56 @@ class NightfallHighScores extends React.Component {
         <div className='chart'>
           <ul className='list'>
             <li key='header'>
-              <div className='name'>Strike</div>
+              <div className='name' />
               <div className='score'>High score</div>
             </li>
             {list.map(item => item.element)}
           </ul>
         </div>
-        <div className='datum'>
-          <div className='d w'>
-            <div className='b'>{favourite ? <>{favourite.clears} clears</> : ` `}</div>
-            <div className='v'>{favourite ? <>{favourite.definition.displayProperties.name.replace('Nightfall: ', '')}</> : `—`}</div>
-            <div className='n'>{t('favourite')}</div>
-          </div>
-          <div className='d w'>
-            <div className='b'>
-              {fastestNightfall ? (
-                <>
-                  {moment.duration(fastestNightfall.bestTime, 'seconds').minutes()}
-                  <span>m</span> {moment.duration(fastestNightfall.bestTime, 'seconds').seconds()}
-                  <span>s</span>
-                </>
-              ) : (
-                ` `
-              )}
+        <div className='summary'>
+          <div className='datum'>
+            <div className='d w'>
+              <div className='b'>{favourite ? <>{favourite.clears} clears</> : ` `}</div>
+              <div className='v'>{favourite ? <>{favourite.definition.selectionScreenDisplayProperties.name}</> : `—`}</div>
+              <div className='n'>{t('favourite')}</div>
             </div>
-            <div className='v'>{fastestNightfall ? <>{fastestNightfall.definition.displayProperties.name.replace('Nightfall: ', '')}</> : `—`}</div>
-            <div className='n'>{t('fastest clear')}</div>
+            <div className='d w'>
+              <div className='b'>
+                {fastestNightfall ? (
+                  <>
+                    {moment.duration(fastestNightfall.bestTime, 'seconds').minutes()}
+                    <span>m</span> {moment.duration(fastestNightfall.bestTime, 'seconds').seconds()}
+                    <span>s</span>
+                  </>
+                ) : (
+                  ` `
+                )}
+              </div>
+              <div className='v'>{fastestNightfall ? <>{fastestNightfall.definition.selectionScreenDisplayProperties.name}</> : `—`}</div>
+              <div className='n'>{t('fastest clear')}</div>
+            </div>
+            <div className='d'>
+              <div className='v'>{sumKills.toLocaleString()}</div>
+              <div className='n'>{t('kills')}</div>
+            </div>
+            <div className='d'>
+              <div className='v'>{sumDeaths.toLocaleString()}</div>
+              <div className='n'>{t('deaths')}</div>
+            </div>
+            <div className='d'>
+              <div className='v'>{sumSuperKills.toLocaleString()}</div>
+              <div className='n'>{t('super kills')}</div>
+            </div>
+            <div className='d'>
+              <div className='v'>{sumCleared.toLocaleString()}</div>
+              <div className='n'>{t('completed')}</div>
+            </div>
+            <div className='d w'>
+              <div className='v'>{Math.floor(parseInt(sumDuration) / 3600)}</div>
+              <div className='n'>{Math.floor(parseInt(sumDuration) / 3600) === 1 ? t('hour played') : t('hours played')}</div>
+            </div>
           </div>
-          <div className='d'>
-            <div className='v'>{sumKills.toLocaleString()}</div>
-            <div className='n'>{t('kills')}</div>
-          </div>
-          <div className='d'>
-            <div className='v'>{sumDeaths.toLocaleString()}</div>
-            <div className='n'>{t('deaths')}</div>
-          </div>
-          <div className='d'>
-            <div className='v'>{sumSuperKills.toLocaleString()}</div>
-            <div className='n'>{t('super kills')}</div>
-          </div>
-          <div className='d'>
-            <div className='v'>{sumCleared.toLocaleString()}</div>
-            <div className='n'>{t('completed')}</div>
-          </div>
-          <div className='d w'>
-            <div className='v'>{Math.floor(parseInt(sumDuration) / 3600)}</div>
-            <div className='n'>{Math.floor(parseInt(sumDuration) / 3600) === 1 ? t('hour played') : t('hours played')}</div>
-          </div>
+          <div className='state'>{cacheLoading ? <Spinner mini /> : cacheState[46] !== nfPGCRs.length ? <p>{cacheState[46] - nfPGCRs.length} PGCRs failed to load at this minute therefore their stats are not included.</p> : null}</div>
         </div>
       </>
     );

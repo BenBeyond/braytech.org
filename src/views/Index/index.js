@@ -73,26 +73,25 @@ class Index extends React.Component {
     return (
       <div className='view' id='index'>
         <div className='head'>
-          <ObservedImage className='bg image' src='/static/images/S5_Iron_Banner_1.jpg' />
+          <ObservedImage className='bg image' src='/static/images/season6_product_page_header_1.jpg' />
           <div className='device'>
             <Logo />
           </div>
           <div className='slogan'>
             <div className='message'>{slogans[this.state.slogan].message}</div>
             {/* eslint-disable-next-line react/jsx-no-comment-textnodes */}
-            <div className='link'>
-              // <ProfileLink to={slogans[this.state.slogan].link.to}>{slogans[this.state.slogan].link.name}</ProfileLink>
-            </div>
+            <div className='view-name'>// {slogans[this.state.slogan].link.name}</div>
+            <ProfileLink to={slogans[this.state.slogan].link.to} />
           </div>
         </div>
         <div className='modules'>
           <div className='coming-up'>
             <div className='page-header'>
-              <div className='name'><span className='destiny-faction_ironbanner' /> Iron Banana</div>
+              <div className='name'>Season of the Drifter</div>
               <div className='description'>What's happening this week in Destiny</div>
             </div>
             <div className='text'>
-              <p>Lord Saladin has returned to the tower to continue testing Guardians' strength and courage in his version of the Crucible.</p>
+              <p>How you livin'? I've got big plans for all you Guardians. You're gonna want t'check your equipment and buckle in, 'cus' you ain't seen nothin' yet--</p>
             </div>
           </div>
           <div className='change-log'>

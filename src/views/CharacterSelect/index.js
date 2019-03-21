@@ -31,7 +31,7 @@ class CharacterSelect extends React.Component {
     store.dispatch({ type: 'MEMBER_LOAD_MEMBERSHIP', payload: { membershipType, membershipId } });
 
     if (displayName) {
-      ls.update('history.profiles', { membershipType, membershipId, displayName }, true, 6);
+      ls.update('history.profiles', { membershipType, membershipId, displayName }, true, 9);
     }
   };
 
@@ -39,7 +39,7 @@ class CharacterSelect extends React.Component {
     const { member, theme, viewport } = this.props;
     const { error, loading } = member;
 
-    const { from } = this.props.location.state || { from: { pathname: '/legend' } };
+    const { from } = this.props.location.state || { from: { pathname: '/' } };
     const reverse = viewport.width <= 500;
 
     const profileCharacterSelect = (

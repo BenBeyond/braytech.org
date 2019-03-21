@@ -6,10 +6,12 @@ import store from './utils/reduxStore';
 
 import Clan from './views/Clan';
 import Legend from './views/Legend';
+import Competitive from './views/Competitive';
 import Collections from './views/Collections';
 import Triumphs from './views/Triumphs';
 import Checklists from './views/Checklists';
 import Account from './views/Account';
+import SitRep from './views/SitRep';
 import ThisWeek from './views/ThisWeek';
 import Header from './components/Header';
 import Spinner from './components/Spinner';
@@ -52,10 +54,13 @@ class ProfileRoutes extends React.Component {
           <Route path={`${match.url}/account`} exact render={route => <Account />} />
           <Route path={`${match.url}/clan/:view?/:subView?`} exact render={route => <Clan view={route.match.params.view} subView={route.match.params.subView} />} />
           <Route path={`${match.url}/legend`} exact render={route => <Legend />} />
+          <Route path={`${match.url}/competitive`} exact render={route => <Competitive />} />
           <Route path={`${match.url}/checklists`} exact component={Checklists} />
           <Route path={`${match.url}/collections/:primary?/:secondary?/:tertiary?/:quaternary?`} render={route => <Collections {...route} />} />
           <Route path={`${match.url}/triumphs/:primary?/:secondary?/:tertiary?/:quaternary?`} render={route => <Triumphs {...route} />} />
-          <Route path={`${match.url}/this-week`} exact render={() => <ThisWeek />} />
+          <Route path={`${match.url}/this-week`} exact render={() => <ThisWeek />} />>
+          <Route path={`${match.url}/sit-rep`} exact render={route => <SitRep />} />
+          <Route path={`${match.url}/`} render={route => <Redirect to={{ pathname: `${match.url}/sit-rep` }} />} />
         </Switch>
       </>
     );
